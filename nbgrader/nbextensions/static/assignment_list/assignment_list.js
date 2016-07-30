@@ -287,6 +287,103 @@ define([
         this.element.append(container);
     };
 
+    Notebook.prototype.make_button = function () {
+        var that = this;
+        var container = $('<span/>').addClass('item_status col-sm-4');
+        var button = $('<button/>').addClass("btn btn-default btn-xs");
+        container.append(button);
+
+        button.text("Validate");
+        button.click(function (e) {
+            var settings = {
+                cache : false,
+                data : {
+                    course_id: that.data.course_id,
+                    assignment_id: that.data.assignment_id,
+                    notebook_id: that.data.notebook_id
+                },
+                type : "POST",
+                dataType : "json",
+                success : function (data, status, xhr) {
+                    button.text('Validate');
+                    button.removeAttr('disabled');
+                    that.validate(data, button);
+                },
+                error : function (xhr, status, error) {
+                    container.empty().text("Error validating assignment.");
+                    utils.log_ajax_error(xhr, status, error);
+                }
+            };
+            button.text('Validating...');
+            button.attr('disabled', 'disabled');
+            var url = utils.url_join_encode(
+                that.base_url,
+                'assignments',
+                'validate'
+            );
+            $.ajax(url, settings);
+        });
+
+        return container;
+    };
+
+    Notebook.prototype.validate_success = function (button) {
+        button
+            .removeClass("btn-default")
+            .removeClass("btn-danger")
+            .removeClass("btn-success")
+            .addClass("btn-success");
+    };
+
+    Notebook.prototype.validate_failure = function (button) {
+        button
+            .removeClass("btn-default")
+            .removeClass("btn-danger")
+            .removeClass("btn-success")
+            .addClass("btn-danger");
+    };
+
+    Notebook.prototype.validate = function (data, button) {
+        data = JSON.parse(data);
+        var body = $('<div/>').attr("id", "validation-message");
+        if (data.changed !== undefined) {
+            for (var i=0; i<data.changed.length; i++) {
+                body.append($('<div/>').append($('<p/>').text('The source of the following cell has changed, but it should not have!')));
+                body.append($('<pre/>').text(data.changed[i].source));
+            }
+            body.addClass("validation-changed");
+            this.validate_failure(button);
+
+        } else if (data.passed !== undefined) {
+            for (var i=0; i<data.changed.length; i++) {
+                body.append($('<div/>').append($('<p/>').text('The following cell passed:')));
+                body.append($('<pre/>').text(data.passed[i].source));
+            }
+            body.addClass("validation-passed");
+            this.validate_failure(button);
+
+        } else if (data.failed !== undefined) {
+            for (var i=0; i<data.failed.length; i++) {
+                body.append($('<div/>').append($('<p/>').text('The following cell failed:')));
+                body.append($('<pre/>').text(data.failed[i].source));
+                body.append($('<pre/>').html(data.failed[i].error));
+            }
+            body.addClass("validation-failed");
+            this.validate_failure(button);
+
+        } else {
+            body.append($('<div/>').append($('<p/>').text('Success! Your notebook passes all the tests.')));
+            body.addClass("validation-success");
+            this.validate_success(button);
+        }
+
+        dialog.modal({
+            title: "Validation Results",
+            body: body,
+            buttons: { OK: { class : "btn-primary" } }
+        });
+    };
+
     return {
         'AssignmentList': AssignmentList,
         'Assignment': Assignment,
