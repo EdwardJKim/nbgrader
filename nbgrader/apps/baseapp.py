@@ -74,7 +74,7 @@ class NbGrader(JupyterApp):
         return "%(color)s[%(name)s | %(levelname)s]%(end_color)s %(message)s"
 
     logfile = Unicode(
-        ".nbgrader.log",
+        "",
         config=True,
         help=dedent(
             """
