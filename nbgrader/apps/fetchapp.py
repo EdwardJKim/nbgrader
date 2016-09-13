@@ -3,6 +3,7 @@ import os
 from .baseapp import TransferApp, transfer_aliases, transfer_flags
 from ..utils import check_mode
 
+from traitlets import List, Unicode
 
 aliases = {}
 aliases.update(transfer_aliases)
@@ -56,7 +57,17 @@ class FetchApp(TransferApp):
             self.fail("You don't have read permissions for the directory: {}".format(self.src_path))
 
     def init_dest(self):
-        self.dest_path = os.path.abspath(os.path.join('.', self.assignment_id))
+        if any(i in self.assignment_id for i in self.homework_keywords):
+            self.dest_path = os.path.abspath(
+                os.path.join('.', self.homework_directory, self.assignment_id)
+            )
+        elif any(i in self.assignment_id for i in self.peer_keywords):
+            self.dest_path = os.path.abspath(
+                os.path.join('.', self.peer_directory, self.assignment_id)
+            )
+        else:
+            self.dest_path = os.path.abspath(os.path.join('.', self.assignment_id))
+
         if os.path.isdir(self.dest_path):
             self.fail("You already have a copy of the assignment in this directory: {}".format(self.assignment_id))
 

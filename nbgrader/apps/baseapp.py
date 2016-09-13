@@ -465,6 +465,36 @@ class TransferApp(NbGrader):
         config=True,
         help="Local cache directory for nbgrader submit and nbgrader list. Defaults to $JUPYTER_DATA_DIR/nbgrader_cache")
 
+    homework_directory = Unicode(
+        "assignments",
+        config=True,
+        help="Directory where assignments will go."
+    )
+
+    homework_keywords = List(
+        trait=Unicode,
+        default_value=[
+            "Assignment", "assignment", "Homework", "homework", "HW", "hw"
+        ],
+        config=True,
+        help="The keywords for distinguishing assignments"
+    )
+
+    peer_directory = Unicode(
+        "peer_reviews",
+        config=True,
+        help="Directory where peer assessments will go."
+    )
+
+    peer_keywords = List(
+        trait=Unicode,
+        default_value=[
+            "Peer", "peer", "Review", "review"
+        ],
+        config=True,
+        help="The keywords for distinguishing peer assessments"
+    )
+
     def _cache_directory_default(self):
         return os.path.join(jupyter_data_dir(), 'nbgrader_cache')
 

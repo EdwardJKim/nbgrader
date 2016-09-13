@@ -144,6 +144,23 @@ class ListApp(TransferApp):
             if self.inbound or self.cached:
                 info['status'] = 'submitted'
                 info['path'] = path
+            elif os.path.exists(
+                os.path.join(self.homework_directory, info['assignment_id'])
+            ):
+                info['status'] = 'fetched'
+                info['prepend'] = self.homework_directory
+                info['path'] = os.path.abspath(
+                    os.path.join(self.homework_directory, info['assignment_id'])
+                )
+                
+            elif os.path.exists(
+                os.path.join(self.peer_directory, info['assignment_id'])
+            ):
+                info['status'] = 'fetched'
+                info['prepend'] = self.peer_directory
+                info['path'] = os.path.abspath(
+                    os.path.join(self.peer_directory, info['assignment_id'])
+                )
             elif os.path.exists(info['assignment_id']):
                 info['status'] = 'fetched'
                 info['path'] = os.path.abspath(info['assignment_id'])
