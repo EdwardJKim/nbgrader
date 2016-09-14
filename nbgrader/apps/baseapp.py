@@ -465,6 +465,12 @@ class TransferApp(NbGrader):
         config=True,
         help="Local cache directory for nbgrader submit and nbgrader list. Defaults to $JUPYTER_DATA_DIR/nbgrader_cache")
 
+    lesson_directory = Unicode(
+        "lessons",
+        config=True,
+        help="Directory where lessons will go."
+    )
+
     homework_directory = Unicode(
         "assignments",
         config=True,

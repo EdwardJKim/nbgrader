@@ -21,14 +21,14 @@ class LessonList(LoggingConfigurable):
         return self.parent.notebook_dir
 
     def list_released_lessons(self):
-        p = sp.Popen([sys.executable, "-m", "nbgrader", "list", "--json"], stdout=sp.PIPE, stderr=sp.PIPE, cwd=self.lesson_dir)
+        p = sp.Popen([sys.executable, "-m", "nbgrader", "list", "--lesson"], stdout=sp.PIPE, stderr=sp.PIPE, cwd=self.lesson_dir)
         output, _ = p.communicate()
         retcode = p.poll()
         if retcode != 0:
             raise RuntimeError('nbgrader list exited with code {}'.format(retcode))
         lessons = json.loads(output.decode())
         for lesson in lessons:
-            if lesson['status'] == 'fetched':
+            if lesson['status'] == 'lesson_fetched':
                 if lesson['prepend']:
                     lesson['assignment_id'] = os.path.join(
                         lesson['prepend'], lesson['assignment_id']
@@ -45,7 +45,7 @@ class LessonList(LoggingConfigurable):
 
     def fetch_lesson(self, course_id, assignment_id):
         p = sp.Popen([
-            "nbgrader", "fetch",
+            "nbgrader", "fetch", "--lesson",
             "--course", course_id,
             assignment_id
         ], stdout=sp.PIPE, stderr=sp.STDOUT, cwd=self.lesson_dir)

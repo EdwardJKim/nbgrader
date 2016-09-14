@@ -61,10 +61,10 @@ define([
         for (var i=0; i<len; i++) {
             var element = $('<div/>');
             var item = new Lesson(element, data[i], $.proxy(this.load_list_success, this), this.options);
-            if (data[i]['status'] === 'released') {
+            if (data[i]['status'] === 'lesson_released') {
                 this.released_element.append(element);
                 this.released_element.children('.list_placeholder').hide();
-            } else if (data[i]['status'] === 'fetched') {
+            } else if (data[i]['status'] === 'lesson_fetched') {
                 this.fetched_element.append(element);
                 this.fetched_element.children('.list_placeholder').hide();
             }
@@ -141,7 +141,7 @@ define([
         row.append(this.make_button());  
         this.element.empty().append(row);
 
-        if (this.data.status === 'fetched') {
+        if (this.data.status === 'lesson_fetched') {
             var id = this.escape_id();
             var children = $('<div/>')
                 .attr("id", id)
@@ -166,7 +166,7 @@ define([
         var container = $('<span/>').addClass('item_name col-sm-6');
         var link;
 
-        if (this.data.status === 'fetched') {
+        if (this.data.status === 'lesson_fetched') {
             var id = this.escape_id();
             link = $('<a/>')
                 .addClass("collapsed lesson-notebooks-link")
@@ -189,7 +189,7 @@ define([
         var that = this;
         var container = $('<span/>').addClass('item_status col-sm-4');
 
-        if (this.data.status == 'released') {
+        if (this.data.status == 'lesson_released') {
             var button = $('<button/>').addClass("btn btn-primary btn-xs");
             container.append(button);
 

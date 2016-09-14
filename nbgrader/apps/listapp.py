@@ -33,6 +33,10 @@ flags.update({
         {'ListApp' : {'as_json': True}},
         "Print out assignments as json."
     ),
+    'lesson': (
+        {'ListApp' : {'lesson': True}},
+        "List lessons rather than assignments."
+    )
 })
 
 class ListApp(TransferApp):
@@ -93,6 +97,7 @@ class ListApp(TransferApp):
     cached = Bool(False, config=True, help="List assignments in submission cache.")
     remove = Bool(False, config=True, help="Remove, rather than list files.")
     as_json = Bool(False, config=True, help="Print out assignments as json")
+    lesson = Bool(False, config=True, help="List lesson notebooks rather than assignments.")
 
     def init_src(self):
         pass
@@ -106,6 +111,8 @@ class ListApp(TransferApp):
             pattern = os.path.join(self.exchange_directory, course_id, 'inbound', '{}+{}+*'.format(student_id, assignment_id))
         elif self.cached:
             pattern = os.path.join(self.cache_directory, course_id, '{}+{}+*'.format(student_id, assignment_id))
+        elif self.lesson:
+            pattern = os.path.join(self.exchange_directory, course_id, 'lesson', '{}'.format(assignment_id))
         else:
             pattern = os.path.join(self.exchange_directory, course_id, 'outbound', '{}'.format(assignment_id))
 
@@ -116,6 +123,8 @@ class ListApp(TransferApp):
             regexp = r".*/(?P<course_id>.*)/inbound/(?P<student_id>.*)\+(?P<assignment_id>.*)\+(?P<timestamp>.*)"
         elif self.cached:
             regexp = r".*/(?P<course_id>.*)/(?P<student_id>.*)\+(?P<assignment_id>.*)\+(?P<timestamp>.*)"
+        elif self.lesson:
+            regexp = r".*/(?P<course_id>.*)/lesson/(?P<assignment_id>.*)"
         else:
             regexp = r".*/(?P<course_id>.*)/outbound/(?P<assignment_id>.*)"
 
@@ -144,6 +153,19 @@ class ListApp(TransferApp):
             if self.inbound or self.cached:
                 info['status'] = 'submitted'
                 info['path'] = path
+            elif self.lesson:
+                if os.path.exists(
+                    os.path.join(self.lesson_directory, info['assignment_id'])
+                ):
+                    info['status'] = 'lesson_fetched'
+                    info['prepend'] = self.lesson_directory
+                    info['path'] = os.path.abspath(
+                        os.path.join(self.lesson_directory, info['assignment_id'])
+                    )
+                else:
+                    info['status'] = 'lesson_released'
+                    info['path'] = path
+                    
             elif os.path.exists(
                 os.path.join(self.homework_directory, info['assignment_id'])
             ):
@@ -188,7 +210,8 @@ class ListApp(TransferApp):
 
         if self.as_json:
             print(json.dumps(assignments))
-
+        elif self.lesson:
+            print(json.dumps(assignments))
         else:
             if self.inbound or self.cached:
                 self.log.info("Submitted assignments:")
