@@ -69,7 +69,6 @@ define(function(require) {
         var lesson_list = new LessonList.LessonList(
             '#released_lessons_list',
             '#fetched_lessons_list',
-            '#submitted_lessons_list',
             {
                 base_url: Jupyter.notebook_list.base_url,
                 notebook_path: Jupyter.notebook_list.notebook_path,

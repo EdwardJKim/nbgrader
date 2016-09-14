@@ -38,19 +38,9 @@ class LessonList(LoggingConfigurable):
                     notebook['path'] = os.path.relpath(notebook['path'], self.lesson_dir)
         return sorted(lessons, key=lambda x: (x['course_id'], x['assignment_id']))
 
-    def list_submitted_lessons(self):
-        p = sp.Popen([sys.executable, "-m", "nbgrader", "list", "--json", "--cached"], stdout=sp.PIPE, stderr=sp.PIPE, cwd=self.lesson_dir)
-        output, _ = p.communicate()
-        retcode = p.poll()
-        if retcode != 0:
-            raise RuntimeError('nbgrader list exited with code {}'.format(retcode))
-        lessons = json.loads(output.decode())
-        return sorted(lessons, key=lambda x: x['timestamp'], reverse=True)
-
     def list_lessons(self):
         lessons = []
         lessons.extend(self.list_released_lessons())
-        lessons.extend(self.list_submitted_lessons())
         return lessons
 
     def fetch_lesson(self, course_id, assignment_id):
@@ -64,29 +54,6 @@ class LessonList(LoggingConfigurable):
         if retcode != 0:
             self.log.error(output)
             raise RuntimeError('nbgrader fetch exited with code {}'.format(retcode))
-
-    def submit_lesson(self, course_id, assignment_id):
-        p = sp.Popen([
-            sys.executable, "-m", "nbgrader", "submit",
-            "--course", course_id,
-            assignment_id
-        ], stdout=sp.PIPE, stderr=sp.STDOUT, cwd=self.lesson_dir)
-        output, _ = p.communicate()
-        retcode = p.poll()
-        if retcode != 0:
-            self.log.error(output)
-            raise RuntimeError('nbgrader submit exited with code {}'.format(retcode))
-
-    def validate_notebook(self, assignment_id, notebook_id):
-        p = sp.Popen([
-            sys.executable, "-m", "nbgrader", "validate", "--json",
-            os.path.join(assignment_id, "{}.ipynb".format(notebook_id))
-        ], stdout=sp.PIPE, stderr=sp.PIPE, cwd=self.lesson_dir)
-        output, _ = p.communicate()
-        retcode = p.poll()
-        if retcode != 0:
-            raise RuntimeError('nbgrader validate exited with code {}'.format(retcode))
-        return output.decode()
 
 
 class BaseLessonHandler(IPythonHandler):
@@ -113,12 +80,6 @@ class LessonActionHandler(BaseLessonHandler):
         if action == 'fetch':
             self.manager.fetch_lesson(course_id, assignment_id)
             self.finish(json.dumps(self.manager.list_lessons()))
-        elif action == 'submit':
-            self.manager.submit_lesson(course_id, assignment_id)
-            self.finish(json.dumps(self.manager.list_lessons()))
-        elif action == 'validate':
-            output = self.manager.validate_notebook(assignment_id, self.get_argument('notebook_id'))
-            self.finish(json.dumps(output))
 
 
 #-----------------------------------------------------------------------------
@@ -126,7 +87,7 @@ class LessonActionHandler(BaseLessonHandler):
 #-----------------------------------------------------------------------------
 
 
-_lesson_action_regex = r"(?P<action>fetch|submit|validate)"
+_lesson_action_regex = r"(?P<action>fetch)"
 
 default_handlers = [
     (r"/lessons", LessonListHandler),

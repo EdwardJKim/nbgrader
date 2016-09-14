@@ -9,14 +9,12 @@ define([
 ], function(Jupyter, $, utils, dialog) {
     "use strict";
 
-    var LessonList = function (released_selector, fetched_selector, submitted_selector, options) {
+    var LessonList = function (released_selector, fetched_selector, options) {
         this.released_selector = released_selector;
         this.fetched_selector = fetched_selector;
-        this.submitted_selector = submitted_selector;
 
         this.released_element = $(released_selector);
         this.fetched_element = $(fetched_selector);
-        this.submitted_element = $(submitted_selector);
         this.bind_events();
 
         options = options || {};
@@ -51,12 +49,10 @@ define([
         // remove list items
         this.released_element.children('.list_item').remove();
         this.fetched_element.children('.list_item').remove();
-        this.submitted_element.children('.list_item').remove();
 
         // show placeholders
         this.released_element.children('.list_placeholder').show();
         this.fetched_element.children('.list_placeholder').show();
-        this.submitted_element.children('.list_placeholder').show();
     };
 
     LessonList.prototype.load_list_success = function (data, status, xhr) {
@@ -71,9 +67,6 @@ define([
             } else if (data[i]['status'] === 'fetched') {
                 this.fetched_element.append(element);
                 this.fetched_element.children('.list_placeholder').hide();
-            } else if (data[i]['status'] === 'submitted') {
-                this.submitted_element.append(element);
-                this.submitted_element.children('.list_placeholder').hide();
             }
         }
 
