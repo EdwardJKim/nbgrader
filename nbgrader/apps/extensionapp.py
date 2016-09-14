@@ -61,6 +61,12 @@ class ExtensionInstallApp(InstallNBExtensionApp, NbGrader):
             self.extra_args = [os.path.join(nbextensions_dir, 'static', 'assignment_list')]
             self.install_extensions()
 
+        # install the lesson_list extension
+        if sys.platform != 'win32' and (len(extra_args) == 0 or "lesson_list" in extra_args):
+            self.log.info("Installing lesson_list extension")
+            self.extra_args = [os.path.join(nbextensions_dir, 'static', 'lesson_list')]
+            self.install_extensions()
+
 
 class ExtensionUninstallApp(UninstallNBExtensionApp, NbGrader):
 
@@ -96,6 +102,12 @@ class ExtensionUninstallApp(UninstallNBExtensionApp, NbGrader):
         if sys.platform != 'win32' and (len(extra_args) == 0 or "assignment_list" in extra_args):
             self.log.info("Uninstalling assignment_list extension")
             self.extra_args = ["assignment_list"]
+            self.uninstall_extensions()
+
+        # install the lesson_list extension
+        if sys.platform != 'win32' and (len(extra_args) == 0 or "lesson_list" in extra_args):
+            self.log.info("Uninstalling lesson_list extension")
+            self.extra_args = ["lesson_list"]
             self.uninstall_extensions()
 
 
@@ -141,6 +153,13 @@ class ExtensionActivateApp(EnableNBExtensionApp, NbGrader):
 
             self.section = "tree"
             self.toggle_nbextension("assignment_list/main")
+
+        if sys.platform != 'win32' and (len(self.extra_args) == 0 or "lesson_list" in self.extra_args):
+            self.log.info("Activating lesson_list server extension")
+            self.enable_server_extension('nbgrader.nbextensions.lesson_list')
+
+            self.section = "tree"
+            self.toggle_nbextension("lesson_list/main")
 
         self.log.info("Done. You may need to restart the Jupyter notebook server for changes to take effect.")
 
@@ -196,6 +215,14 @@ class ExtensionDeactivateApp(DisableNBExtensionApp, NbGrader):
             self.log.info("Deactivating assignment_list nbextension")
             self.section = "tree"
             self.toggle_nbextension("assignment_list/main")
+
+        if sys.platform != 'win32' and (len(self.extra_args) == 0 or "lesson_list" in self.extra_args):
+            self.log.info("Deactivating lesson_list server extension")
+            self.disable_server_extension('nbgrader.nbextensions.lesson_list')
+
+            self.log.info("Deactivating lesson_list nbextension")
+            self.section = "tree"
+            self.toggle_nbextension("lesson_list/main")
 
         self.log.info("Done. You may need to restart the Jupyter notebook server for changes to take effect.")
 
