@@ -29,6 +29,10 @@ class AssignmentList(LoggingConfigurable):
         assignments = json.loads(output.decode())
         for assignment in assignments:
             if assignment['status'] == 'fetched':
+                if assignment['prepend']:
+                    assignment['assignment_id'] = os.path.join(
+                        assignment['prepend'], assignment['assignment_id']
+                    )
                 assignment['path'] = os.path.relpath(assignment['path'], self.assignment_dir)
                 for notebook in assignment['notebooks']:
                     notebook['path'] = os.path.relpath(notebook['path'], self.assignment_dir)

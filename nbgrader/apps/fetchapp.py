@@ -3,6 +3,7 @@ import os
 from .baseapp import TransferApp, transfer_aliases, transfer_flags
 from ..utils import check_mode
 
+from traitlets import List, Unicode, Bool
 
 aliases = {}
 aliases.update(transfer_aliases)
@@ -12,6 +13,10 @@ aliases.update({
 flags = {}
 flags.update(transfer_flags)
 flags.update({
+    'lesson': (
+        {'FetchApp' : {'lesson': True}},
+        "Fetch lessons rather than assignments."
+    )
 })
 
 class FetchApp(TransferApp):
@@ -43,12 +48,17 @@ class FetchApp(TransferApp):
         to turn in the assignment.
         """
 
+    lesson = Bool(False, config=True, help="Fetch lesson notebooks rather than assignments.")
+
     def init_src(self):
         if self.course_id == '':
             self.fail("No course id specified. Re-run with --course flag.")
 
         self.course_path = os.path.join(self.exchange_directory, self.course_id)
-        self.outbound_path = os.path.join(self.course_path, 'outbound')
+        if self.lesson:
+            self.outbound_path = os.path.join(self.course_path, 'lesson')
+        else:
+            self.outbound_path = os.path.join(self.course_path, 'outbound')
         self.src_path = os.path.join(self.outbound_path, self.assignment_id)
         if not os.path.isdir(self.src_path):
             self.fail("Assignment not found: {}".format(self.src_path))
@@ -56,7 +66,21 @@ class FetchApp(TransferApp):
             self.fail("You don't have read permissions for the directory: {}".format(self.src_path))
 
     def init_dest(self):
-        self.dest_path = os.path.abspath(os.path.join('.', self.assignment_id))
+        if self.lesson:
+            self.dest_path = os.path.abspath(
+                os.path.join('.', self.lesson_directory, self.assignment_id)
+            )
+        elif any(i in self.assignment_id for i in self.homework_keywords):
+            self.dest_path = os.path.abspath(
+                os.path.join('.', self.homework_directory, self.assignment_id)
+            )
+        elif any(i in self.assignment_id for i in self.peer_keywords):
+            self.dest_path = os.path.abspath(
+                os.path.join('.', self.peer_directory, self.assignment_id)
+            )
+        else:
+            self.dest_path = os.path.abspath(os.path.join('.', self.assignment_id))
+
         if os.path.isdir(self.dest_path):
             self.fail("You already have a copy of the assignment in this directory: {}".format(self.assignment_id))
 
